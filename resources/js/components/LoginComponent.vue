@@ -1,4 +1,4 @@
-<template>
+ <template>
     <v-app id="inspire">
         <v-main>
             <v-container
@@ -29,25 +29,33 @@
                                     :active="loading"
                                     :indeterminate="loading"
                                     absolute
-                                    bottom
-                                    color="deep-purple accent-4"
+                                    top
+                                    color="white accent-4"
                                     >
-
                                 </v-progress-linear>
-                                <v-form>
-                                    <v-text-field
+
+                                    <v-form
+                                            ref="form"
+                                            v-model="valid"
+
+                                    >
+                                    <v-text-field color="error"
                                         label="Email"
                                         name="email"
                                         v-model="email"
+                                        :rules="emailRules"
+                                        required
                                         prepend-icon="mdi-email-newsletter"
                                         type="email"
                                     ></v-text-field>
 
-                                    <v-text-field
+                                    <v-text-field color="error"
                                         id="password"
                                         label="Password"
                                         v-model="password"
+                                                  :rules="passwordRules"
                                         name="password"
+                                        required
                                         prepend-icon="mdi-account-lock"
                                         type="password"
                                     ></v-text-field>
@@ -55,9 +63,26 @@
                             </v-card-text>
                             <v-card-actions>
                                 <v-spacer></v-spacer>
-                                <v-btn color="error" @click="login">Login</v-btn>
+                                <v-btn color="error"
+                                       :disabled="!valid"
+                                       @click="login">Login</v-btn>
                             </v-card-actions>
                         </v-card>
+                        <v-snackbar
+                                v-model="snackbar"
+                        >
+                            {{ text }}
+
+
+                                <v-btn
+                                        color="pink"
+                                        text
+                                        @click="snackbar = false"
+                                >
+                                    Close
+                                </v-btn>
+
+                        </v-snackbar>
                     </v-col>
                 </v-row>
             </v-container>
@@ -68,13 +93,25 @@
     export default {
        data(){
            return{
+               valid: true,
                email:'',
+               emailRules: [
+                   v => !!v || 'E-mail is required',
+                   v => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+               ],
                password:'',
-               loading:false
+               passwordRules: [
+                   v => !!v || 'Password is required',
+
+               ],
+               loading:false,
+               snackbar:false,
+               text:'',
            }
        },
         methods:{
            login: function () {
+
                // Add a request interceptor
                axios.interceptors.request.use( (config)=> {
                    // Do something before request is sent
@@ -98,11 +135,23 @@
                    // Do something with response error
                    return Promise.reject(error);
                });
-               axios.post('/api/login',{'email':this,'password':this.password})
+               axios.post('/api/login',{'email':this.email,'password':this.password})
                .then(res => {
+
+                //  console.log(res);
                    localStorage.setItem('token',res.data.token)
+                   localStorage.setItem('loggedIn',true)
+                   this.$router.push('/admin')
+                       .then(res =>console.log("LoggedIn Successfully"))
+                       .catch(res => console.log(err))
                })
-               .catch( err => console.dir(err))
+               .catch( err =>{
+                   console.log(err);//undefined
+                   //console.dir(err)
+                  // this.text = err.data.status;
+                   this.text = err.response.data.status;
+                   this.snackbar = true;
+               })
 
 
            }

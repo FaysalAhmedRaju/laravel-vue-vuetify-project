@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Role;
 
 class RoleController extends Controller
 {
@@ -12,20 +13,15 @@ class RoleController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        $per_page = $request->per_page;
+//        return response()->json(['roles' => Role::all()],200);
+        return response()->json(['roles' => Role::paginate($per_page)],200);
 
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
 
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -35,6 +31,15 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
+        $role = Role::create([
+            'name' => $request->name,
+        ]);
+        if($role){
+            return response()->json(['role' => $role], 200);
+        }else{
+            return response()->json(['role' => 'Not Created'], 204);
+        }
+
 
     }
 
@@ -46,19 +51,11 @@ class RoleController extends Controller
      */
     public function show($id)
     {
-
+        $roles = Role::where('name', 'LIKE', "%$id%")->paginate();
+        return response()->json(['roles' => $roles],200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
 
-    }
 
     /**
      * Update the specified resource in storage.
@@ -69,6 +66,10 @@ class RoleController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $role = Role::find($id);
+        $role->name = $request->name;
+        $role->save();
+        return response()->json(['role' => $role], 200);
 
     }
 
@@ -80,6 +81,8 @@ class RoleController extends Controller
      */
     public function destroy($id)
     {
+        $role = Role::find($id)->delete();
+        return response()->json(['role' => $role], 200);
 
     }
 }

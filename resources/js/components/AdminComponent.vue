@@ -10,6 +10,7 @@
                     v-for="item in items"
                     :key="item.text"
                     link
+                    :to="item.action"
                 >
                     <v-list-item-action>
                         <v-icon>{{ item.icon }}</v-icon>
@@ -40,16 +41,19 @@
                     class="mt-4"
                     link
                 >
-                    <v-list-item-action>
-                        <v-icon color="grey darken-1">mdi-plus-circle-outline</v-icon>
-                    </v-list-item-action>
-                    <v-list-item-title class="grey--text text--darken-1">Browse Channels</v-list-item-title>
+                    <!--<v-list-item-action>-->
+
+                        <!--<v-icon color="grey darken-1">mdi-plus-circle-outline</v-icon>-->
+                    <!--</v-list-item-action>-->
+                    <v-list-item-title class="grey--text text--darken-1">
+                        <v-switch v-model="theme" class="ma-4" label="Switch Theme"></v-switch>
+                    </v-list-item-title>
                 </v-list-item>
-                <v-list-item link>
+                <v-list-item link @click="logout">
                     <v-list-item-action>
                         <v-icon color="grey darken-1">mdi-cog</v-icon>
                     </v-list-item-action>
-                    <v-list-item-title class="grey--text text--darken-1">Manage Subscriptions</v-list-item-title>
+                    <v-list-item-title class="grey--text text--darken-1">Logout</v-list-item-title>
                 </v-list-item>
             </v-list>
         </v-navigation-drawer>
@@ -57,19 +61,23 @@
         <v-app-bar
             app
             clipped-left
-            color="red"
+
             dense
-        >
+        >  <!--color="red"-->
+
             <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-            <v-icon
-                class="mx-4"
-                large
-            >
-                mdi-youtube
-            </v-icon>
-            <v-toolbar-title class="mr-12 align-center">
-                <span class="title">Youtube</span>
-            </v-toolbar-title>
+            <v-btn text to="/admin" left>
+                <v-icon
+                        class="mx-4"
+                        large
+                >
+                    mdi-laravel
+                </v-icon>
+                <v-toolbar-title class="mr-12 align-center">
+                    <span class="title">Laravel Vue Admin</span>
+                </v-toolbar-title>
+            </v-btn>
+
             <v-spacer></v-spacer>
             <v-row
                 align="center"
@@ -87,9 +95,26 @@
         </v-app-bar>
 
         <v-main>
-            <v-container class="fill-height">
+            <v-container class="">
+                <router-view></router-view>
                 <v-row justify="center" align="center">
                     <v-col>
+
+                        <v-snackbar
+                                v-model="snackbar"
+                        >
+                           Welcome To Admin Panel!
+
+
+                            <v-btn
+                                    color="pink"
+                                    text
+                                    @click="snackbar = false"
+                            >
+                                Close
+                            </v-btn>
+
+                        </v-snackbar>
 
                     </v-col>
                 </v-row>
@@ -101,15 +126,18 @@
     export default {
         props: {
             source: String,
+
         },
         data: () => ({
             drawer: null,
+            snackbar:false,
+            theme:true,
             items: [
-                { icon: 'mdi-trending-up', text: 'Most Popular' },
-                { icon: 'mdi-youtube-subscription', text: 'Subscriptions' },
-                { icon: 'mdi-history', text: 'History' },
-                { icon: 'mdi-playlist-play', text: 'Playlists' },
-                { icon: 'mdi-clock', text: 'Watch Later' },
+                { icon: 'mdi-trending-up', text: 'Users', action: 'users' },
+                { icon: 'mdi-youtube-subscription', text: 'Posts', action: 'posts' },
+                { icon: 'mdi-history', text: 'Pages', action: 'pages' },
+                { icon: 'mdi-playlist-play', text: 'Categories', action: 'categories' },
+                { icon: 'mdi-clock', text: 'Roles', action: 'roles' },
             ],
             items2: [
                 { picture: 28, text: 'Joseph' },
@@ -121,7 +149,25 @@
         }),
         created () {
             this.$vuetify.theme.dark = true
+
         },
+        watch:{
+          theme: function (old, newval) {
+              this.$vuetify.theme.dark = old;
+          }
+        },
+        mounted(){
+            this.snackbar = localStorage.getItem('loggedIn') ? true : false;
+            localStorage.removeItem('loggedIn')
+        },
+        methods:{
+            logout: function () {
+                localStorage.removeItem('token');
+                this.$router.push('/login')
+                    .then(res =>console.log("Logged Out Successfully"))
+                    .catch(res => console.log(err))
+            }
+        }
     }
 </script>
 <style scoped></style>
